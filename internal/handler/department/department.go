@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	departmentCreateURL = "/api/departments/create"
-	departmentUpdateURL = "/api/departments/update"
+	departmentCreateURL   = "/api/departments/create"
+	departmentUpdateURL   = "/api/departments/update"
+	departmentHierachyURL = "/api/departments/hierarchy"
 )
 
 type Handler struct {
@@ -27,6 +28,7 @@ func New(log *zap.SugaredLogger, uCase *usecase.Department) Handler {
 func (h Handler) Register(r *httprouter.Router) {
 	r.HandlerFunc(http.MethodPost, departmentCreateURL, h.Create)
 	r.HandlerFunc(http.MethodPost, departmentUpdateURL, h.Update)
+	r.HandlerFunc(http.MethodGet, departmentHierachyURL, h.Hierarchy)
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +99,28 @@ func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(`{"success": "ok"}`)
+}
+
+func (h Handler) Hierarchy(w http.ResponseWriter, r *http.Request) {
+	dps, err := h.uCase.HierarchyDepartment()
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't get departments: "+err.Error())
+		http.Error(w, "can't get departments: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(dps)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't marshal departments: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(jsonData); err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't write json data: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h Handler) validateReq(dto interface{}) error {

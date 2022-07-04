@@ -23,6 +23,7 @@ type DepartmentRepo interface {
 	GetByID(ctx context.Context, departmentID string) (model.Department, error)
 	Create(ctx context.Context, dto *dto.CreateDepartment) (model.Department, error)
 	Update(ctx context.Context, dto *dto.UpdateDepartment) error
+	Hierarchy(ctx context.Context) ([]model.Department, error)
 	// GetHierarchy()
 	// Update()
 	// Delete()
@@ -49,12 +50,12 @@ func (r *Repository) GetByID(ctx context.Context, departmentID string) (model.De
 	}
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		return dp, fmt.Errorf("can't select orders: %s", err.Error())
+		return dp, fmt.Errorf("can't select departments: %s", err.Error())
 	}
 	if rows.Next() {
 		err := rows.Scan(&dp.ID, &dp.Name, &dp.Path)
 		if err != nil {
-			return dp, fmt.Errorf("can't scan order: %s", err.Error())
+			return dp, fmt.Errorf("can't scan department: %s", err.Error())
 		}
 	}
 	defer rows.Close()
@@ -150,6 +151,32 @@ func (r *Repository) Update(ctx context.Context, dto *dto.UpdateDepartment) erro
 	}
 
 	return nil
+}
+
+func (r *Repository) Hierarchy(ctx context.Context) ([]model.Department, error) {
+	var dps []model.Department
+	query, args, err := sq.
+		Select("department_id", "department_name", "department_path").
+		From(departmentTable).
+		ToSql()
+	if err != nil {
+		return dps, fmt.Errorf("can't build query: %s", err.Error())
+	}
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return dps, fmt.Errorf("can't select departments: %s", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		dp := model.Department{}
+		err := rows.Scan(&dp.ID, &dp.Name, &dp.Path)
+		if err != nil {
+			return dps, fmt.Errorf("can't scan department: %s", err.Error())
+		}
+		dps = append(dps, dp)
+	}
+	return dps, nil
 }
 
 func GenerateID() string {
