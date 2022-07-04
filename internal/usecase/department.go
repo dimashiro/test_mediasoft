@@ -26,3 +26,11 @@ func (d Department) CreateDepartment(dto *dto.CreateDepartment) (model.Departmen
 	}
 	return dp, nil
 }
+
+func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
+	err := d.repo.Update(context.Background(), dto)
+	if err != nil {
+		return err
+	}
+	return nil
+}
