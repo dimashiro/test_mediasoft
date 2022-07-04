@@ -2,6 +2,7 @@ package department
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/dimashiro/test_mediasoft/internal/model"
 	"github.com/dimashiro/test_mediasoft/internal/model/dto"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -24,9 +26,7 @@ type DepartmentRepo interface {
 	Create(ctx context.Context, dto *dto.CreateDepartment) (model.Department, error)
 	Update(ctx context.Context, dto *dto.UpdateDepartment) error
 	Hierarchy(ctx context.Context) ([]model.Department, error)
-	// GetHierarchy()
-	// Update()
-	// Delete()
+	Delete(ctx context.Context, dto *dto.DeleteDepartment) error
 }
 
 type Repository struct {
@@ -177,6 +177,43 @@ func (r *Repository) Hierarchy(ctx context.Context) ([]model.Department, error) 
 		dps = append(dps, dp)
 	}
 	return dps, nil
+}
+
+func (r *Repository) Delete(ctx context.Context, dto *dto.DeleteDepartment) error {
+	dp := model.Department{}
+	if _, err := uuid.Parse(dto.ID); err == nil {
+		dp, err = r.GetByID(ctx, dto.ID)
+		if err != nil {
+			return fmt.Errorf("department not found: %s", err.Error())
+		}
+	} else {
+		return fmt.Errorf("wrong id: %s", err.Error())
+	}
+
+	sql := "SELECT department_path FROM departments WHERE department_path <@ $1 AND department_path != $1 LIMIT 1"
+	var dpPath string
+	err := r.db.QueryRow(ctx, sql, dp.Path).Scan(&dpPath)
+	if err == nil {
+		return errors.New("Cannot delete department with descendants.")
+	} else {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("query error: %s", err.Error())
+		}
+	}
+
+	query, args, err := sq.
+		Delete(departmentTable).
+		Where(sq.Eq{"department_id": dto.ID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("can't build query: %s", err.Error())
+	}
+	_, err = r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("sql exec err: %w", err)
+	}
+	return nil
 }
 
 func GenerateID() string {

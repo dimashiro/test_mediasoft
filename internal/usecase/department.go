@@ -38,3 +38,7 @@ func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
 func (d Department) HierarchyDepartment() ([]model.Department, error) {
 	return d.repo.Hierarchy(context.Background())
 }
+
+func (d Department) DeleteDepartment(dto *dto.DeleteDepartment) error {
+	return d.repo.Delete(context.Background(), dto)
+}

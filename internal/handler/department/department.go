@@ -14,6 +14,7 @@ const (
 	departmentCreateURL   = "/api/departments/create"
 	departmentUpdateURL   = "/api/departments/update"
 	departmentHierachyURL = "/api/departments/hierarchy"
+	departmentDeleteURL   = "/api/departments/delete"
 )
 
 type Handler struct {
@@ -29,6 +30,7 @@ func (h Handler) Register(r *httprouter.Router) {
 	r.HandlerFunc(http.MethodPost, departmentCreateURL, h.Create)
 	r.HandlerFunc(http.MethodPost, departmentUpdateURL, h.Update)
 	r.HandlerFunc(http.MethodGet, departmentHierachyURL, h.Hierarchy)
+	r.HandlerFunc(http.MethodDelete, departmentDeleteURL, h.Delete)
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +123,36 @@ func (h Handler) Hierarchy(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	// prepare dto to parse request
+	dto := &dto.DeleteDepartment{}
+	// parse req body to dto
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't parse req: "+err.Error())
+		http.Error(w, "bad json: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// check that request valid
+	err = h.validateReq(dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't parse req: "+err.Error())
+		http.Error(w, "bad request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.uCase.DeleteDepartment(dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't delete department: "+err.Error())
+		http.Error(w, "can't delete department: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(`{"success": "ok"}`)
 }
 
 func (h Handler) validateReq(dto interface{}) error {
