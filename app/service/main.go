@@ -7,10 +7,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/dimashiro/test_mediasoft/internal/handlers"
-	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/dimashiro/test_mediasoft/config"
+	"github.com/dimashiro/test_mediasoft/internal/handler"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -35,24 +34,7 @@ func main() {
 func run(log *zap.SugaredLogger) error {
 	//__________________________________________________________________________
 	// Config
-	cfg := struct {
-		APIHost         string        `env:"APIHOST" env-default:"0.0.0.0:3000"`
-		ReadTimeout     time.Duration `env:"READTIMEOUT" env-default:"5s"`
-		WriteTimeout    time.Duration `env:"WRITETIMEOUT" env-default:"10s"`
-		IdleTimeout     time.Duration `env:"IDLETIMEOUT" env-default:"120s"`
-		ShutdownTimeout time.Duration `env:"SHUTDOWNTIMEOUT" env-default:"20s"`
-		DB              struct {
-			DBUser         string `env:"DBUSER" env-default:"postgres"`
-			DBPassword     string `env:"DBPASSWORD" env-default:"postgres,mask"`
-			DBHost         string `env:"DBHOST" env-default:"localhost"`
-			DBName         string `env:"DBNAME" env-default:"postgres"`
-			DBMaxIdleConns int    `env:"DBMAXIDLECONNS" env-default:"0"`
-			DBMaxOpenConns int    `env:"DBMAXOPENCONNS" env-default:"0"`
-			DBDisableTLS   bool   `env:"DBDISABLETLS" env-default:"true"`
-		}
-	}{}
-
-	err := cleanenv.ReadEnv(&cfg)
+	cfg, err := config.NewConfig()
 	if err != nil {
 		return fmt.Errorf("loading conf: %w", err)
 	}
@@ -66,7 +48,11 @@ func run(log *zap.SugaredLogger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	apiRouter := handlers.NewRouter()
+	ctx := context.Background()
+	apiRouter, err := handler.NewRouter(ctx, log, cfg)
+	if err != nil {
+		return fmt.Errorf("can't init router: %s", err.Error())
+	}
 
 	apiSrv := http.Server{
 		Addr:         cfg.APIHost,
