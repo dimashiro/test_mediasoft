@@ -31,3 +31,11 @@ func (e Employee) CreateEmployee(dto *dto.CreateEmployee) (model.Employee, error
 func (e Employee) GetAllEmployees() ([]model.Employee, error) {
 	return e.rEmpl.GetAll(context.Background())
 }
+
+func (e Employee) UpdateEmployee(dto *dto.UpdateEmployee) error {
+	return e.rEmpl.Update(context.Background(), dto)
+}
+
+func (e Employee) DeleteEmployee(dto *dto.DeleteEmployee) error {
+	return e.rEmpl.Delete(context.Background(), dto)
+}

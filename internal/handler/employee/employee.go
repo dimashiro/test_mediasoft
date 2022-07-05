@@ -29,6 +29,8 @@ func New(log *zap.SugaredLogger, uCase *usecase.Employee) Handler {
 func (h Handler) Register(r *httprouter.Router) {
 	r.HandlerFunc(http.MethodPost, employeeCreateURL, h.Create)
 	r.HandlerFunc(http.MethodGet, employeesURL, h.GetAll)
+	r.HandlerFunc(http.MethodPost, employeeUpdateURL, h.Update)
+	r.HandlerFunc(http.MethodDelete, employeeDeleteURL, h.Delete)
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -52,14 +54,14 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	empl, err := h.uCase.CreateEmployee(dto)
 	if err != nil {
-		h.log.Errorw("ERROR", "ERROR", "can't create department: "+err.Error())
-		http.Error(w, "can't create department: "+err.Error(), http.StatusInternalServerError)
+		h.log.Errorw("ERROR", "ERROR", "can't create employee: "+err.Error())
+		http.Error(w, "can't create employee: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	jsonData, err := json.Marshal(empl)
 	if err != nil {
-		h.log.Errorw("ERROR", "ERROR", "can't marshal department: "+err.Error())
+		h.log.Errorw("ERROR", "ERROR", "can't marshal employee: "+err.Error())
 		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -91,6 +93,62 @@ func (h Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	dto := &dto.DeleteEmployee{}
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't parse req: "+err.Error())
+		http.Error(w, "bad json: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// check that request valid
+	err = h.validateReq(dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't parse req: "+err.Error())
+		http.Error(w, "bad request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.uCase.DeleteEmployee(dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't delete employee: "+err.Error())
+		http.Error(w, "can't delete employee: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(`{"success": "ok"}`)
+}
+
+func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
+	dto := &dto.UpdateEmployee{}
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't parse req: "+err.Error())
+		http.Error(w, "bad json: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// check that request valid
+	err = h.validateReq(dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't parse req: "+err.Error())
+		http.Error(w, "bad request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.uCase.UpdateEmployee(dto)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't update employee: "+err.Error())
+		http.Error(w, "can't create employee: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(`{"success": "ok"}`)
 }
 
 func (h Handler) validateReq(dto interface{}) error {
