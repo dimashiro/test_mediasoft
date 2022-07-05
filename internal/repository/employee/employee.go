@@ -21,9 +21,7 @@ const (
 type EmployeeRepo interface {
 	GetByID(ctx context.Context, employeeID string) (model.Employee, error)
 	Create(ctx context.Context, dto *dto.CreateEmployee) (model.Employee, error)
-	// Update(ctx context.Context, dto *dto.UpdateDepartment) error
-	// GetAll(ctx context.Context) ([]model.Department, error)
-	// Delete(ctx context.Context, dto *dto.DeleteDepartment) error
+	GetAll(ctx context.Context) ([]model.Employee, error)
 }
 
 type Repository struct {
@@ -117,4 +115,30 @@ func (r *Repository) Create(ctx context.Context, dto *dto.CreateEmployee) (model
 	}
 
 	return employee, nil
+}
+
+func (r *Repository) GetAll(ctx context.Context) ([]model.Employee, error) {
+	var empls []model.Employee
+	query, args, err := sq.
+		Select("*").
+		From(employeeTable).
+		ToSql()
+	if err != nil {
+		return empls, fmt.Errorf("can't build query: %s", err.Error())
+	}
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return empls, fmt.Errorf("can't select employees: %s", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		empl := model.Employee{}
+		err := rows.Scan(&empl.ID, &empl.Name, &empl.Surname, &empl.BirthYear)
+		if err != nil {
+			return empls, fmt.Errorf("can't scan employee: %s", err.Error())
+		}
+		empls = append(empls, empl)
+	}
+	return empls, nil
 }

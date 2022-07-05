@@ -28,6 +28,7 @@ func New(log *zap.SugaredLogger, uCase *usecase.Employee) Handler {
 
 func (h Handler) Register(r *httprouter.Router) {
 	r.HandlerFunc(http.MethodPost, employeeCreateURL, h.Create)
+	r.HandlerFunc(http.MethodGet, employeesURL, h.GetAll)
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +60,28 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 	jsonData, err := json.Marshal(empl)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't marshal department: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(jsonData); err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't write json data: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+	empls, err := h.uCase.GetAllEmployees()
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't get employees: "+err.Error())
+		http.Error(w, "can't get employees: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(empls)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't marshal employees: "+err.Error())
 		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -27,3 +27,7 @@ func (e Employee) CreateEmployee(dto *dto.CreateEmployee) (model.Employee, error
 	}
 	return empl, nil
 }
+
+func (e Employee) GetAllEmployees() ([]model.Employee, error) {
+	return e.rEmpl.GetAll(context.Background())
+}
