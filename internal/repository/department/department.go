@@ -109,7 +109,7 @@ func (r *Repository) Update(ctx context.Context, dto *dto.UpdateDepartment) erro
 	//TODO move to validation later
 	dp := model.Department{}
 	if _, err := uuid.Parse(dto.ID); err == nil {
-		dp, err = r.GetByID(ctx, *dto.ParentID)
+		dp, err = r.GetByID(ctx, dto.ID)
 		if err != nil {
 			return fmt.Errorf("department not found: %s", err.Error())
 		}
