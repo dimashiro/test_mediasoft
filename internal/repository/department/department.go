@@ -18,7 +18,6 @@ const (
 	// tables
 	departmentTable = "departments"
 	itemsTable      = "items"
-	orderItemsTable = "order_items"
 )
 
 type DepartmentRepo interface {
