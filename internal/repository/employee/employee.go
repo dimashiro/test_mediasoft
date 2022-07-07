@@ -25,6 +25,7 @@ type EmployeeRepo interface {
 	GetAll(ctx context.Context) ([]model.Employee, error)
 	Delete(ctx context.Context, dto *dto.DeleteEmployee) error
 	Update(ctx context.Context, dto *dto.UpdateEmployee) error
+	GetByDepartment(ctx context.Context, departmentID string) ([]model.Employee, error)
 }
 
 type Repository struct {
@@ -159,6 +160,39 @@ func (r *Repository) GetAll(ctx context.Context) ([]model.Employee, error) {
 
 	for _, e := range emplMap {
 		empls = append(empls, e)
+	}
+	return empls, nil
+}
+
+func (r *Repository) GetByDepartment(ctx context.Context, departmentID string) ([]model.Employee, error) {
+	empls := []model.Employee{}
+
+	query, args, err := sq.
+		Select("e.employee_id", "e.employee_name", "e.employee_surname",
+			"e.employee_birthyear").
+		From(departmentTable).
+		Join(employeeDepartmentTable + " USING (department_id)").
+		Join(employeeTable + " AS e USING (employee_id)").
+		Where(sq.Eq{"department_id": departmentID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return empls, fmt.Errorf("can't build query: %s", err.Error())
+	}
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return empls, fmt.Errorf("can't select employees: %s", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		empl := model.Employee{}
+		err := rows.Scan(&empl.ID, &empl.Name, &empl.Surname,
+			&empl.BirthYear)
+		if err != nil {
+			return empls, fmt.Errorf("can't scan employee: %s", err.Error())
+		}
+		empls = append(empls, empl)
 	}
 	return empls, nil
 }

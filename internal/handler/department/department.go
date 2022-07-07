@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	departmentCreateURL   = "/api/departments/create"
-	departmentUpdateURL   = "/api/departments/update"
+	departmentCreateURL   = "/api/department/create"
+	departmentUpdateURL   = "/api/department/update"
 	departmentHierachyURL = "/api/departments/hierarchy"
-	departmentDeleteURL   = "/api/departments/delete"
+	departmentDeleteURL   = "/api/department/delete"
+	emplInDepartmentURL   = "/api/department/:uuid/employees"
 )
 
 type Handler struct {
@@ -31,6 +32,8 @@ func (h Handler) Register(r *httprouter.Router) {
 	r.HandlerFunc(http.MethodPost, departmentUpdateURL, h.Update)
 	r.HandlerFunc(http.MethodGet, departmentHierachyURL, h.Hierarchy)
 	r.HandlerFunc(http.MethodDelete, departmentDeleteURL, h.Delete)
+	r.HandlerFunc(http.MethodGet, emplInDepartmentURL, h.GetEmployees)
+
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -153,6 +156,34 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(`{"success": "ok"}`)
+}
+
+func (h Handler) GetEmployees(w http.ResponseWriter, r *http.Request) {
+	params := r.Context().Value(httprouter.ParamsKey).(httprouter.Params)
+	emplUUID := params.ByName("uuid")
+	if emplUUID == "" {
+		h.log.Errorw("ERROR", "ERROR", "wrong uuid in req")
+		http.Error(w, "bad request", http.StatusBadRequest)
+	}
+	empls, err := h.uCase.GetEmployeesByDepartment(emplUUID)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't get employees: "+err.Error())
+		http.Error(w, "can't get employees: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(empls)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't marshal employees: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(jsonData); err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't write json data: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h Handler) validateReq(dto interface{}) error {

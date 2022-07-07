@@ -6,21 +6,23 @@ import (
 	"github.com/dimashiro/test_mediasoft/internal/model"
 	"github.com/dimashiro/test_mediasoft/internal/model/dto"
 	"github.com/dimashiro/test_mediasoft/internal/repository/department"
+	"github.com/dimashiro/test_mediasoft/internal/repository/employee"
 	"go.uber.org/zap"
 )
 
 // Usecase responsible for saving request.
 type Department struct {
-	log  *zap.SugaredLogger
-	repo department.DepartmentRepo
+	log   *zap.SugaredLogger
+	rEmpl employee.EmployeeRepo
+	rDptm department.DepartmentRepo
 }
 
-func NewDepartment(log *zap.SugaredLogger, repo department.DepartmentRepo) *Department {
-	return &Department{log: log, repo: repo}
+func NewDepartment(log *zap.SugaredLogger, rDptm department.DepartmentRepo, rEmpl employee.EmployeeRepo) *Department {
+	return &Department{log: log, rDptm: rDptm, rEmpl: rEmpl}
 }
 
 func (d Department) CreateDepartment(dto *dto.CreateDepartment) (model.Department, error) {
-	dp, err := d.repo.Create(context.Background(), dto)
+	dp, err := d.rDptm.Create(context.Background(), dto)
 	if err != nil {
 		return model.Department{}, err
 	}
@@ -28,7 +30,7 @@ func (d Department) CreateDepartment(dto *dto.CreateDepartment) (model.Departmen
 }
 
 func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
-	err := d.repo.Update(context.Background(), dto)
+	err := d.rDptm.Update(context.Background(), dto)
 	if err != nil {
 		return err
 	}
@@ -36,9 +38,13 @@ func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
 }
 
 func (d Department) HierarchyDepartment() ([]model.Department, error) {
-	return d.repo.Hierarchy(context.Background())
+	return d.rDptm.Hierarchy(context.Background())
 }
 
 func (d Department) DeleteDepartment(dto *dto.DeleteDepartment) error {
-	return d.repo.Delete(context.Background(), dto)
+	return d.rDptm.Delete(context.Background(), dto)
+}
+
+func (d Department) GetEmployeesByDepartment(departmentID string) ([]model.Employee, error) {
+	return d.rEmpl.GetByDepartment(context.Background(), departmentID)
 }

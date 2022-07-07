@@ -25,8 +25,8 @@ func NewRouter(ctx context.Context, log *zap.SugaredLogger, cfg *config.Config) 
 		return nil, fmt.Errorf("can't create pg pool: %s", err.Error())
 	}
 	rDptm := department.New(pool)
-	departmentUCase := usecase.NewDepartment(log, rDptm)
 	rEmpl := employee.New(pool)
+	departmentUCase := usecase.NewDepartment(log, rDptm, rEmpl)
 	employeeUCase := usecase.NewEmployee(log, rEmpl, rDptm)
 
 	employee_handler.New(log, employeeUCase).Register(router)
