@@ -16,6 +16,7 @@ const (
 	// tables
 	employeeTable           = "employees"
 	employeeDepartmentTable = "employee_department"
+	departmentTable         = "departments"
 )
 
 type EmployeeRepo interface {
@@ -121,9 +122,14 @@ func (r *Repository) Create(ctx context.Context, dto *dto.CreateEmployee) (model
 
 func (r *Repository) GetAll(ctx context.Context) ([]model.Employee, error) {
 	var empls []model.Employee
+	emplMap := make(map[string]model.Employee)
 	query, args, err := sq.
-		Select("*").
+		Select("employee_id", "employee_name", "employee_surname",
+			"employee_birthyear", "d.department_id", "d.department_name",
+			"d.department_path").
 		From(employeeTable).
+		Join(employeeDepartmentTable + " USING (employee_id)").
+		Join(departmentTable + " AS d USING (department_id)").
 		ToSql()
 	if err != nil {
 		return empls, fmt.Errorf("can't build query: %s", err.Error())
@@ -136,11 +142,23 @@ func (r *Repository) GetAll(ctx context.Context) ([]model.Employee, error) {
 
 	for rows.Next() {
 		empl := model.Employee{}
-		err := rows.Scan(&empl.ID, &empl.Name, &empl.Surname, &empl.BirthYear)
+		dptm := model.Department{}
+		err := rows.Scan(&empl.ID, &empl.Name, &empl.Surname,
+			&empl.BirthYear, &dptm.ID, &dptm.Name, &dptm.Path)
 		if err != nil {
 			return empls, fmt.Errorf("can't scan employee: %s", err.Error())
 		}
-		empls = append(empls, empl)
+		if e, ok := emplMap[empl.ID]; ok {
+			e.Departments = append(e.Departments, dptm)
+			emplMap[empl.ID] = e
+		} else {
+			empl.Departments = append(empl.Departments, dptm)
+			emplMap[empl.ID] = empl
+		}
+	}
+
+	for _, e := range emplMap {
+		empls = append(empls, e)
 	}
 	return empls, nil
 }

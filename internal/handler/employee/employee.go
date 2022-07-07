@@ -29,7 +29,7 @@ func New(log *zap.SugaredLogger, uCase *usecase.Employee) Handler {
 func (h Handler) Register(r *httprouter.Router) {
 	r.HandlerFunc(http.MethodPost, employeeCreateURL, h.Create)
 	r.HandlerFunc(http.MethodGet, employeesURL, h.GetAll)
-	r.HandlerFunc(http.MethodPost, employeeUpdateURL, h.Update)
+	r.HandlerFunc(http.MethodPut, employeeUpdateURL, h.Update)
 	r.HandlerFunc(http.MethodDelete, employeeDeleteURL, h.Delete)
 }
 

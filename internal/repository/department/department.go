@@ -17,7 +17,6 @@ import (
 const (
 	// tables
 	departmentTable = "departments"
-	itemsTable      = "items"
 )
 
 type DepartmentRepo interface {
