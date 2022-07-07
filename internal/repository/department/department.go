@@ -23,7 +23,7 @@ type DepartmentRepo interface {
 	GetByID(ctx context.Context, departmentID string) (model.Department, error)
 	Create(ctx context.Context, dto *dto.CreateDepartment) (model.Department, error)
 	Update(ctx context.Context, dto *dto.UpdateDepartment) error
-	Hierarchy(ctx context.Context) ([]model.Department, error)
+	Hierarchy(ctx context.Context) (map[string]*model.Department, error)
 	GetAll(ctx context.Context) ([]dto.ViewAllDepartments, error)
 	Delete(ctx context.Context, dto *dto.DeleteDepartment) error
 }
@@ -126,7 +126,6 @@ func (r *Repository) Update(ctx context.Context, dto *dto.UpdateDepartment) erro
 		} else {
 			return fmt.Errorf("wrond parent id: %s", err.Error())
 		}
-		dp.Parent = &dpParent
 		dp.Path = dpParent.Path + "." + strings.ReplaceAll(dp.ID, "-", "_")
 	}
 
@@ -152,30 +151,38 @@ func (r *Repository) Update(ctx context.Context, dto *dto.UpdateDepartment) erro
 	return nil
 }
 
-func (r *Repository) Hierarchy(ctx context.Context) ([]model.Department, error) {
-	var dps []model.Department
+func (r *Repository) Hierarchy(ctx context.Context) (map[string]*model.Department, error) {
+	// var dps []model.Department
+	mDps := make(map[string]*model.Department)
 	query, args, err := sq.
 		Select("department_id", "department_name", "department_path").
 		From(departmentTable).
+		OrderBy("department_path").
 		ToSql()
 	if err != nil {
-		return dps, fmt.Errorf("can't build query: %s", err.Error())
+		return mDps, fmt.Errorf("can't build query: %s", err.Error())
 	}
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		return dps, fmt.Errorf("can't select departments: %s", err.Error())
+		return mDps, fmt.Errorf("can't select departments: %s", err.Error())
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		dp := model.Department{}
+		dp := model.Department{Children: []*model.Department{}}
 		err := rows.Scan(&dp.ID, &dp.Name, &dp.Path)
 		if err != nil {
-			return dps, fmt.Errorf("can't scan department: %s", err.Error())
+			return mDps, fmt.Errorf("can't scan department: %s", err.Error())
 		}
-		dps = append(dps, dp)
+		mDps[dp.ID] = &dp
+		if dp.Path != strings.ReplaceAll(dp.ID, "-", "_") {
+			parentID := strings.ReplaceAll(dp.Path[len(dp.Path)-73:len(dp.Path)-37], "_", "-")
+			pDp := mDps[parentID]
+			pDp.Children = append(pDp.Children, &dp)
+		}
+		// dps = append(dps, dp)
 	}
-	return dps, nil
+	return mDps, nil
 }
 
 func (r *Repository) GetAll(ctx context.Context) ([]dto.ViewAllDepartments, error) {

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"github.com/dimashiro/test_mediasoft/internal/model"
 	"github.com/dimashiro/test_mediasoft/internal/model/dto"
@@ -37,8 +38,18 @@ func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
 	return nil
 }
 
-func (d Department) HierarchyDepartment() ([]model.Department, error) {
-	return d.rDptm.Hierarchy(context.Background())
+func (d Department) HierarchyDepartment() ([]*model.Department, error) {
+	m, err := d.rDptm.Hierarchy(context.Background())
+	if err != nil {
+		return []*model.Department{}, err
+	}
+	dps := []*model.Department{}
+	for _, v := range m {
+		if strings.ReplaceAll(v.ID, "-", "_") == v.Path {
+			dps = append(dps, v)
+		}
+	}
+	return dps, nil
 }
 
 func (d Department) GetAllDepartments() ([]dto.ViewAllDepartments, error) {
