@@ -12,7 +12,7 @@ build: ## Build app binary file
 	go build -o $(APP_BIN) ./app/service/main.go
 
 build-migrate: ## Build migrate binary file
-	go build -o .app/build/migrate ./app/migrate/main.go
+	go build -o ./app/build/migrate ./app/migrate/main.go
 
 lint: ## Run linter
 	golangci-lint run

@@ -16,7 +16,7 @@ func main() {
 	}
 	m, err := migrate.New(
 		"file://migrations",
-		cfg.GetDBConnString())
+		cfg.GetDBConnString()+"?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
