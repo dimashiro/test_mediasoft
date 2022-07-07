@@ -48,3 +48,11 @@ func (d Department) DeleteDepartment(dto *dto.DeleteDepartment) error {
 func (d Department) GetEmployeesByDepartment(departmentID string) ([]model.Employee, error) {
 	return d.rEmpl.GetByDepartment(context.Background(), departmentID)
 }
+
+func (d Department) GetEmployeesInDepartmentHierarchy(departmentID string) ([]model.Employee, error) {
+	dp, err := d.rDptm.GetByID(context.Background(), departmentID)
+	if err != nil {
+		return []model.Employee{}, err
+	}
+	return d.rEmpl.GetInDepartmentHierarchy(context.Background(), dp)
+}

@@ -26,6 +26,7 @@ type EmployeeRepo interface {
 	Delete(ctx context.Context, dto *dto.DeleteEmployee) error
 	Update(ctx context.Context, dto *dto.UpdateEmployee) error
 	GetByDepartment(ctx context.Context, departmentID string) ([]model.Employee, error)
+	GetInDepartmentHierarchy(ctx context.Context, dp model.Department) ([]model.Employee, error)
 }
 
 type Repository struct {
@@ -180,6 +181,56 @@ func (r *Repository) GetByDepartment(ctx context.Context, departmentID string) (
 		return empls, fmt.Errorf("can't build query: %s", err.Error())
 	}
 	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return empls, fmt.Errorf("can't select employees: %s", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		empl := model.Employee{}
+		err := rows.Scan(&empl.ID, &empl.Name, &empl.Surname,
+			&empl.BirthYear)
+		if err != nil {
+			return empls, fmt.Errorf("can't scan employee: %s", err.Error())
+		}
+		empls = append(empls, empl)
+	}
+	return empls, nil
+}
+
+func (r *Repository) GetInDepartmentHierarchy(ctx context.Context, dp model.Department) ([]model.Employee, error) {
+	empls := []model.Employee{}
+
+	//get hierarchy ids
+	sql := "SELECT department_id FROM departments WHERE department_path <@ $1"
+	rows, err := r.db.Query(ctx, sql, dp.Path)
+	if err != nil {
+		return empls, fmt.Errorf("can't get department hierarchy: %s", err.Error())
+	}
+	var dpIDs []string
+	for rows.Next() {
+		var dpID string
+		err := rows.Scan(&dpID)
+		if err != nil {
+			return empls, fmt.Errorf("can't scan department id: %s", err.Error())
+		}
+		dpIDs = append(dpIDs, dpID)
+	}
+	rows.Close()
+
+	query, args, err := sq.
+		Select("e.employee_id", "e.employee_name", "e.employee_surname",
+			"e.employee_birthyear").
+		From(departmentTable).
+		Join(employeeDepartmentTable + " USING (department_id)").
+		Join(employeeTable + " AS e USING (employee_id)").
+		Where(sq.Eq{"department_id": dpIDs}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return empls, fmt.Errorf("can't build query: %s", err.Error())
+	}
+	rows, err = r.db.Query(ctx, query, args...)
 	if err != nil {
 		return empls, fmt.Errorf("can't select employees: %s", err.Error())
 	}
