@@ -10,7 +10,7 @@ import (
 	"github.com/dimashiro/test_mediasoft/internal/model"
 	"github.com/dimashiro/test_mediasoft/internal/model/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
+	pgx "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
