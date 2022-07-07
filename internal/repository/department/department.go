@@ -24,6 +24,7 @@ type DepartmentRepo interface {
 	Create(ctx context.Context, dto *dto.CreateDepartment) (model.Department, error)
 	Update(ctx context.Context, dto *dto.UpdateDepartment) error
 	Hierarchy(ctx context.Context) ([]model.Department, error)
+	GetAll(ctx context.Context) ([]dto.ViewAllDepartments, error)
 	Delete(ctx context.Context, dto *dto.DeleteDepartment) error
 }
 
@@ -169,6 +170,36 @@ func (r *Repository) Hierarchy(ctx context.Context) ([]model.Department, error) 
 	for rows.Next() {
 		dp := model.Department{}
 		err := rows.Scan(&dp.ID, &dp.Name, &dp.Path)
+		if err != nil {
+			return dps, fmt.Errorf("can't scan department: %s", err.Error())
+		}
+		dps = append(dps, dp)
+	}
+	return dps, nil
+}
+
+func (r *Repository) GetAll(ctx context.Context) ([]dto.ViewAllDepartments, error) {
+	var dps []dto.ViewAllDepartments
+
+	sql := `select
+	d.department_id,
+    d.department_name,
+	(select count(*) from employee_department ed 
+	    where ed.department_id=d.department_id) as count_empl,
+	(select count(*) from employee_department ed 
+	    where ed.department_id in (select d1.department_id from departments d1 where d1.department_path <@ d.department_path)) as count_with_child_empl
+	from departments d
+	order by d.department_name`
+
+	rows, err := r.db.Query(ctx, sql)
+	if err != nil {
+		return dps, fmt.Errorf("can't select departments: %s", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		dp := dto.ViewAllDepartments{}
+		err := rows.Scan(&dp.ID, &dp.Name, &dp.EmployeesAmount, &dp.EmployeesAmountInHierarchy)
 		if err != nil {
 			return dps, fmt.Errorf("can't scan department: %s", err.Error())
 		}

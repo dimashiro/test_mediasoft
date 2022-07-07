@@ -41,6 +41,10 @@ func (d Department) HierarchyDepartment() ([]model.Department, error) {
 	return d.rDptm.Hierarchy(context.Background())
 }
 
+func (d Department) GetAllDepartments() ([]dto.ViewAllDepartments, error) {
+	return d.rDptm.GetAll(context.Background())
+}
+
 func (d Department) DeleteDepartment(dto *dto.DeleteDepartment) error {
 	return d.rDptm.Delete(context.Background(), dto)
 }

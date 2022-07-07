@@ -14,6 +14,7 @@ const (
 	departmentCreateURL          = "/api/department/create"
 	departmentUpdateURL          = "/api/department/update"
 	departmentHierachyURL        = "/api/departments/hierarchy"
+	departmentsURL               = "/api/departments"
 	departmentDeleteURL          = "/api/department/delete"
 	emplInDepartmentURL          = "/api/department/:uuid/employees"
 	emplInDepartmentHierarchyURL = "/api/department/:uuid/employees/all"
@@ -29,6 +30,7 @@ func New(log *zap.SugaredLogger, uCase *usecase.Department) Handler {
 }
 
 func (h Handler) Register(r *httprouter.Router) {
+	r.HandlerFunc(http.MethodGet, departmentsURL, h.GetAllDepartments)
 	r.HandlerFunc(http.MethodPost, departmentCreateURL, h.Create)
 	r.HandlerFunc(http.MethodPost, departmentUpdateURL, h.Update)
 	r.HandlerFunc(http.MethodGet, departmentHierachyURL, h.Hierarchy)
@@ -109,6 +111,28 @@ func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) Hierarchy(w http.ResponseWriter, r *http.Request) {
 	dps, err := h.uCase.HierarchyDepartment()
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't get departments: "+err.Error())
+		http.Error(w, "can't get departments: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(dps)
+	if err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't marshal departments: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(jsonData); err != nil {
+		h.log.Errorw("ERROR", "ERROR", "can't write json data: "+err.Error())
+		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h Handler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
+	dps, err := h.uCase.GetAllDepartments()
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't get departments: "+err.Error())
 		http.Error(w, "can't get departments: "+err.Error(), http.StatusInternalServerError)
