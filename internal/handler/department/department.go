@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/dimashiro/test_mediasoft/internal/middleware"
 	"github.com/dimashiro/test_mediasoft/internal/model/dto"
 	"github.com/dimashiro/test_mediasoft/internal/usecase"
 	"github.com/julienschmidt/httprouter"
@@ -30,13 +31,13 @@ func New(log *zap.SugaredLogger, uCase *usecase.Department) Handler {
 }
 
 func (h Handler) Register(r *httprouter.Router) {
-	r.HandlerFunc(http.MethodGet, departmentsURL, h.GetAllDepartments)
-	r.HandlerFunc(http.MethodPost, departmentCreateURL, h.Create)
-	r.HandlerFunc(http.MethodPost, departmentUpdateURL, h.Update)
-	r.HandlerFunc(http.MethodGet, departmentHierachyURL, h.Hierarchy)
-	r.HandlerFunc(http.MethodDelete, departmentDeleteURL, h.Delete)
-	r.HandlerFunc(http.MethodGet, emplInDepartmentURL, h.GetEmployees)
-	r.HandlerFunc(http.MethodGet, emplInDepartmentHierarchyURL, h.GetEmployeesInHierarchy)
+	r.HandlerFunc(http.MethodGet, departmentsURL, middleware.Logging(h.log, h.GetAllDepartments))
+	r.HandlerFunc(http.MethodPost, departmentCreateURL, middleware.Logging(h.log, h.Create))
+	r.HandlerFunc(http.MethodPut, departmentUpdateURL, middleware.Logging(h.log, h.Update))
+	r.HandlerFunc(http.MethodGet, departmentHierachyURL, middleware.Logging(h.log, h.Hierarchy))
+	r.HandlerFunc(http.MethodDelete, departmentDeleteURL, middleware.Logging(h.log, h.Delete))
+	r.HandlerFunc(http.MethodGet, emplInDepartmentURL, middleware.Logging(h.log, h.GetEmployees))
+	r.HandlerFunc(http.MethodGet, emplInDepartmentHierarchyURL, middleware.Logging(h.log, h.GetEmployeesInHierarchy))
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {

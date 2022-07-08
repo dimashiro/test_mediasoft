@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/dimashiro/test_mediasoft/internal/middleware"
 	"github.com/dimashiro/test_mediasoft/internal/model/dto"
 	"github.com/dimashiro/test_mediasoft/internal/usecase"
 	"github.com/julienschmidt/httprouter"
@@ -27,10 +28,10 @@ func New(log *zap.SugaredLogger, uCase *usecase.Employee) Handler {
 }
 
 func (h Handler) Register(r *httprouter.Router) {
-	r.HandlerFunc(http.MethodPost, employeeCreateURL, h.Create)
-	r.HandlerFunc(http.MethodGet, employeesURL, h.GetAll)
-	r.HandlerFunc(http.MethodPut, employeeUpdateURL, h.Update)
-	r.HandlerFunc(http.MethodDelete, employeeDeleteURL, h.Delete)
+	r.HandlerFunc(http.MethodPost, employeeCreateURL, middleware.Logging(h.log, h.Create))
+	r.HandlerFunc(http.MethodGet, employeesURL, middleware.Logging(h.log, h.GetAll))
+	r.HandlerFunc(http.MethodPut, employeeUpdateURL, middleware.Logging(h.log, h.Update))
+	r.HandlerFunc(http.MethodDelete, employeeDeleteURL, middleware.Logging(h.log, h.Delete))
 }
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
