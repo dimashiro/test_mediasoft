@@ -20,6 +20,3 @@ lint: ## Run linter
 image: ## Build docker image with app
 	docker build -f ./Dockerfile -t $(APP_NAME):local .
 	@printf "\n   \e[30;42m %s \033[0m\n\n" 'Now you can use image like `docker run --rm $(APP_NAME):local ...`';
-
-dc-migrate: ## Run migrate in docker-compose
-    docker-compose exec app ./migrate
