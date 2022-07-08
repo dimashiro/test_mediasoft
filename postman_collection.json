@@ -27,7 +27,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"{{$randomFirstName}}\",\r\n    \"surname\": \"{{$randomLastName}}\",\r\n    \"birthyear\": 1980,\r\n    \"departments_ids\": [\r\n        \"0e884d7a-6084-42ab-8bf8-0f4756195a12\"\r\n    ]\r\n}",
+							"raw": "{\r\n    \"name\": \"{{$randomFirstName}}\",\r\n    \"surname\": \"{{$randomLastName}}\",\r\n    \"birthyear\": 1980,\r\n    \"departments_ids\": [\r\n        \"a45d1ce4-9670-4518-9197-3fa8d467f5df\"\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -54,7 +54,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"ID\": \"{{employee_uuid}}\",\r\n    \"Name\": \"Parker\",\r\n    \"Surname\": \"NewSurname\",\r\n    \"BirthYear\": 1980,\r\n    \"departments_ids\":[\"d8f67982-d824-409c-91ad-7ef7da7d44d2\",\"7acca554-b82b-4535-b02b-3ebd00770cc3\"]\r\n}",
+							"raw": "{\r\n    \"ID\": \"{{employee_uuid}}\",\r\n    \"Name\": \"Parker\",\r\n    \"Surname\": \"NewSurname\",\r\n    \"BirthYear\": 1980,\r\n    \"departments_ids\":[\"0e884d7a-6084-42ab-8bf8-0f4756195a12\",\"a45d1ce4-9670-4518-9197-3fa8d467f5df\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -243,7 +243,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\"id\":\"{{department_uuid}}\", \"name\":\"NewName\", \"parent_id\":\"aed68e5b-7e15-4d52-9252-0b678e28b0cc\"}",
+							"raw": "{\"id\":\"{{department_uuid}}\", \"name\":\"NewName\", \"parent_id\":\"d6ca8a87-bf57-4754-bc9f-7423ae2a4d05\"}",
 							"options": {
 								"raw": {
 									"language": "json"
