@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 VERSION := 1.0
-APP_NAME = $(notdir $(CURDIR))
+APP_NAME = test_mediasoft
 APP_BIN = app/build/service
 
 # This will output the help for each task. thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -20,3 +20,6 @@ lint: ## Run linter
 image: ## Build docker image with app
 	docker build -f ./Dockerfile -t $(APP_NAME):local .
 	@printf "\n   \e[30;42m %s \033[0m\n\n" 'Now you can use image like `docker run --rm $(APP_NAME):local ...`';
+
+dc-migrate: ## Run migrate in docker-compose
+    docker-compose exec app ./migrate
