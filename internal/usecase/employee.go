@@ -20,22 +20,22 @@ func NewEmployee(log *zap.SugaredLogger, rEmpl employee.EmployeeRepo, rDptm depa
 	return &Employee{log: log, rEmpl: rEmpl, rDptm: rDptm}
 }
 
-func (e Employee) CreateEmployee(dto *dto.CreateEmployee) (model.Employee, error) {
-	empl, err := e.rEmpl.Create(context.Background(), dto)
+func (e Employee) CreateEmployee(ctx context.Context, dto *dto.CreateEmployee) (model.Employee, error) {
+	empl, err := e.rEmpl.Create(ctx, dto)
 	if err != nil {
 		return model.Employee{}, err
 	}
 	return empl, nil
 }
 
-func (e Employee) GetAllEmployees() ([]model.Employee, error) {
-	return e.rEmpl.GetAll(context.Background())
+func (e Employee) GetAllEmployees(ctx context.Context) ([]model.Employee, error) {
+	return e.rEmpl.GetAll(ctx)
 }
 
-func (e Employee) UpdateEmployee(dto *dto.UpdateEmployee) error {
-	return e.rEmpl.Update(context.Background(), dto)
+func (e Employee) UpdateEmployee(ctx context.Context, dto *dto.UpdateEmployee) error {
+	return e.rEmpl.Update(ctx, dto)
 }
 
-func (e Employee) DeleteEmployee(dto *dto.DeleteEmployee) error {
-	return e.rEmpl.Delete(context.Background(), dto)
+func (e Employee) DeleteEmployee(ctx context.Context, dto *dto.DeleteEmployee) error {
+	return e.rEmpl.Delete(ctx, dto)
 }

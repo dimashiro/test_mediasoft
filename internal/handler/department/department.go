@@ -42,6 +42,7 @@ func (h Handler) Register(r *httprouter.Router) {
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 	// prepare dto to parse request
+	ctx := r.Context()
 	dto := &dto.CreateDepartment{}
 	// parse req body to dto
 	err := json.NewDecoder(r.Body).Decode(&dto)
@@ -59,7 +60,7 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dp, err := h.uCase.CreateDepartment(dto)
+	dp, err := h.uCase.CreateDepartment(ctx, dto)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't create department: "+err.Error())
 		http.Error(w, "can't create department: "+err.Error(), http.StatusInternalServerError)
@@ -83,6 +84,7 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
 	// prepare dto to parse request
+	ctx := r.Context()
 	dto := &dto.UpdateDepartment{}
 	// parse req body to dto
 	err := json.NewDecoder(r.Body).Decode(&dto)
@@ -100,7 +102,7 @@ func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uCase.UpdateDepartment(dto)
+	err = h.uCase.UpdateDepartment(ctx, dto)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't update department: "+err.Error())
 		http.Error(w, "can't create department: "+err.Error(), http.StatusInternalServerError)
@@ -112,7 +114,7 @@ func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) Hierarchy(w http.ResponseWriter, r *http.Request) {
-	dps, err := h.uCase.HierarchyDepartment()
+	dps, err := h.uCase.HierarchyDepartment(r.Context())
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't get departments: "+err.Error())
 		http.Error(w, "can't get departments: "+err.Error(), http.StatusInternalServerError)
@@ -134,7 +136,7 @@ func (h Handler) Hierarchy(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
-	dps, err := h.uCase.GetAllDepartments()
+	dps, err := h.uCase.GetAllDepartments(r.Context())
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't get departments: "+err.Error())
 		http.Error(w, "can't get departments: "+err.Error(), http.StatusInternalServerError)
@@ -157,6 +159,7 @@ func (h Handler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	// prepare dto to parse request
+	ctx := r.Context()
 	dto := &dto.DeleteDepartment{}
 	// parse req body to dto
 	err := json.NewDecoder(r.Body).Decode(&dto)
@@ -174,7 +177,7 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uCase.DeleteDepartment(dto)
+	err = h.uCase.DeleteDepartment(ctx, dto)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't delete department: "+err.Error())
 		http.Error(w, "can't delete department: "+err.Error(), http.StatusInternalServerError)
@@ -187,13 +190,14 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetEmployees(w http.ResponseWriter, r *http.Request) {
-	params := r.Context().Value(httprouter.ParamsKey).(httprouter.Params)
+	ctx := r.Context()
+	params := ctx.Value(httprouter.ParamsKey).(httprouter.Params)
 	emplUUID := params.ByName("uuid")
 	if emplUUID == "" {
 		h.log.Errorw("ERROR", "ERROR", "wrong uuid in req")
 		http.Error(w, "bad request", http.StatusBadRequest)
 	}
-	empls, err := h.uCase.GetEmployeesByDepartment(emplUUID)
+	empls, err := h.uCase.GetEmployeesByDepartment(ctx, emplUUID)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't get employees: "+err.Error())
 		http.Error(w, "can't get employees: "+err.Error(), http.StatusInternalServerError)
@@ -215,13 +219,14 @@ func (h Handler) GetEmployees(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetEmployeesInHierarchy(w http.ResponseWriter, r *http.Request) {
-	params := r.Context().Value(httprouter.ParamsKey).(httprouter.Params)
+	ctx := r.Context()
+	params := ctx.Value(httprouter.ParamsKey).(httprouter.Params)
 	dpUUID := params.ByName("uuid")
 	if dpUUID == "" {
 		h.log.Errorw("ERROR", "ERROR", "wrong uuid in req")
 		http.Error(w, "bad request", http.StatusBadRequest)
 	}
-	empls, err := h.uCase.GetEmployeesInDepartmentHierarchy(dpUUID)
+	empls, err := h.uCase.GetEmployeesInDepartmentHierarchy(ctx, dpUUID)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't get employees: "+err.Error())
 		http.Error(w, "can't get employees: "+err.Error(), http.StatusInternalServerError)

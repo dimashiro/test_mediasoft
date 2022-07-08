@@ -36,6 +36,7 @@ func (h Handler) Register(r *httprouter.Router) {
 
 func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 	// prepare dto to parse request
+	ctx := r.Context()
 	dto := &dto.CreateEmployee{}
 	// parse req body to dto
 	err := json.NewDecoder(r.Body).Decode(&dto)
@@ -53,7 +54,7 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	empl, err := h.uCase.CreateEmployee(dto)
+	empl, err := h.uCase.CreateEmployee(ctx, dto)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't create employee: "+err.Error())
 		http.Error(w, "can't create employee: "+err.Error(), http.StatusInternalServerError)
@@ -76,7 +77,8 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetAll(w http.ResponseWriter, r *http.Request) {
-	empls, err := h.uCase.GetAllEmployees()
+	ctx := r.Context()
+	empls, err := h.uCase.GetAllEmployees(ctx)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't get employees: "+err.Error())
 		http.Error(w, "can't get employees: "+err.Error(), http.StatusInternalServerError)
@@ -98,6 +100,7 @@ func (h Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	dto := &dto.DeleteEmployee{}
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
@@ -114,7 +117,7 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uCase.DeleteEmployee(dto)
+	err = h.uCase.DeleteEmployee(ctx, dto)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't delete employee: "+err.Error())
 		http.Error(w, "can't delete employee: "+err.Error(), http.StatusInternalServerError)
@@ -127,6 +130,7 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	dto := &dto.UpdateEmployee{}
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
@@ -143,7 +147,7 @@ func (h Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uCase.UpdateEmployee(dto)
+	err = h.uCase.UpdateEmployee(ctx, dto)
 	if err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't update employee: "+err.Error())
 		http.Error(w, "can't create employee: "+err.Error(), http.StatusInternalServerError)

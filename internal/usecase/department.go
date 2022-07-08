@@ -22,15 +22,15 @@ func NewDepartment(log *zap.SugaredLogger, rDptm department.DepartmentRepo, rEmp
 	return &Department{log: log, rDptm: rDptm, rEmpl: rEmpl}
 }
 
-func (d Department) CreateDepartment(dto *dto.CreateDepartment) (model.Department, error) {
-	dp, err := d.rDptm.Create(context.Background(), dto)
+func (d Department) CreateDepartment(ctx context.Context, dto *dto.CreateDepartment) (model.Department, error) {
+	dp, err := d.rDptm.Create(ctx, dto)
 	if err != nil {
 		return model.Department{}, err
 	}
 	return dp, nil
 }
 
-func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
+func (d Department) UpdateDepartment(ctx context.Context, dto *dto.UpdateDepartment) error {
 	err := d.rDptm.Update(context.Background(), dto)
 	if err != nil {
 		return err
@@ -38,8 +38,8 @@ func (d Department) UpdateDepartment(dto *dto.UpdateDepartment) error {
 	return nil
 }
 
-func (d Department) HierarchyDepartment() ([]*model.Department, error) {
-	m, err := d.rDptm.Hierarchy(context.Background())
+func (d Department) HierarchyDepartment(ctx context.Context) ([]*model.Department, error) {
+	m, err := d.rDptm.Hierarchy(ctx)
 	if err != nil {
 		return []*model.Department{}, err
 	}
@@ -52,22 +52,22 @@ func (d Department) HierarchyDepartment() ([]*model.Department, error) {
 	return dps, nil
 }
 
-func (d Department) GetAllDepartments() ([]dto.ViewAllDepartments, error) {
-	return d.rDptm.GetAll(context.Background())
+func (d Department) GetAllDepartments(ctx context.Context) ([]dto.ViewAllDepartments, error) {
+	return d.rDptm.GetAll(ctx)
 }
 
-func (d Department) DeleteDepartment(dto *dto.DeleteDepartment) error {
-	return d.rDptm.Delete(context.Background(), dto)
+func (d Department) DeleteDepartment(ctx context.Context, dto *dto.DeleteDepartment) error {
+	return d.rDptm.Delete(ctx, dto)
 }
 
-func (d Department) GetEmployeesByDepartment(departmentID string) ([]model.Employee, error) {
-	return d.rEmpl.GetByDepartment(context.Background(), departmentID)
+func (d Department) GetEmployeesByDepartment(ctx context.Context, departmentID string) ([]model.Employee, error) {
+	return d.rEmpl.GetByDepartment(ctx, departmentID)
 }
 
-func (d Department) GetEmployeesInDepartmentHierarchy(departmentID string) ([]model.Employee, error) {
-	dp, err := d.rDptm.GetByID(context.Background(), departmentID)
+func (d Department) GetEmployeesInDepartmentHierarchy(ctx context.Context, departmentID string) ([]model.Employee, error) {
+	dp, err := d.rDptm.GetByID(ctx, departmentID)
 	if err != nil {
 		return []model.Employee{}, err
 	}
-	return d.rEmpl.GetInDepartmentHierarchy(context.Background(), dp)
+	return d.rEmpl.GetInDepartmentHierarchy(ctx, dp)
 }
