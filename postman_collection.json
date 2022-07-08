@@ -1,0 +1,268 @@
+{
+	"info": {
+		"_postman_id": "20de3639-9a31-42bc-b1f7-23b8da8fa503",
+		"name": "test_mediasoft",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "employees",
+			"item": [
+				{
+					"name": "Create employee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const resp=pm.response.json()\r",
+									"pm.globals.set(\"employee_uuid\", resp.ID);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"{{$randomFirstName}}\",\r\n    \"surname\": \"{{$randomLastName}}\",\r\n    \"birthyear\": 1980,\r\n    \"departments_ids\": [\r\n        \"7acca554-b82b-4535-b02b-3ebd00770cc3\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/employees/create",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"employees",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update employee",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ID\": \"{{employee_uuid}}\",\r\n    \"Name\": \"Parker\",\r\n    \"Surname\": \"NewSurname\",\r\n    \"BirthYear\": 1980,\r\n    \"departments_ids\":[\"d8f67982-d824-409c-91ad-7ef7da7d44d2\",\"7acca554-b82b-4535-b02b-3ebd00770cc3\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/employees/update",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"employees",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all employee",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Delete employee",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"id\":\"{{employee_uuid}}\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/employees/delete",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"employees",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "departments",
+			"item": [
+				{
+					"name": "Get employees in dptm",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{startURL}}/department/{{department_uuid}}/employees",
+							"host": [
+								"{{startURL}}"
+							],
+							"path": [
+								"department",
+								"{{department_uuid}}",
+								"employees"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get employees in all low dptm",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "All departments",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Creare department",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Organization\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{startURL}}/department/create",
+							"host": [
+								"{{startURL}}"
+							],
+							"path": [
+								"department",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hierarchy",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Update department",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{startURL}}/department/update",
+							"host": [
+								"{{startURL}}"
+							],
+							"path": [
+								"department",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete department",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"id\":\"{{department_uuid}}\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{startURL}}/department/delete",
+							"host": [
+								"{{startURL}}"
+							],
+							"path": [
+								"department",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "startURL",
+			"value": "localhost:3000/api",
+			"type": "default"
+		}
+	]
+}
