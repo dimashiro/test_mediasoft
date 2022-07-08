@@ -47,17 +47,12 @@ func (r *Repository) GetByID(ctx context.Context, departmentID string) (model.De
 	if err != nil {
 		return dp, fmt.Errorf("can't build query: %s", err.Error())
 	}
-	rows, err := r.db.Query(ctx, query, args...)
+	err = r.db.QueryRow(ctx, query, args...).
+		Scan(&dp.ID, &dp.Name, &dp.Path)
 	if err != nil {
-		return dp, fmt.Errorf("can't select departments: %s", err.Error())
+		return dp, fmt.Errorf("can't scan department: %w", err)
 	}
-	if rows.Next() {
-		err := rows.Scan(&dp.ID, &dp.Name, &dp.Path)
-		if err != nil {
-			return dp, fmt.Errorf("can't scan department: %s", err.Error())
-		}
-	}
-	defer rows.Close()
+
 	return dp, nil
 }
 
@@ -230,7 +225,7 @@ func (r *Repository) Delete(ctx context.Context, dto *dto.DeleteDepartment) erro
 	var dpPath string
 	err := r.db.QueryRow(ctx, sql, dp.Path).Scan(&dpPath)
 	if err == nil {
-		return errors.New("Cannot delete department with descendants.")
+		return errors.New("cannot delete department with descendants")
 	} else {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return fmt.Errorf("query error: %s", err.Error())

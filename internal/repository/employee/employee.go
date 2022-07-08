@@ -48,17 +48,12 @@ func (r *Repository) GetByID(ctx context.Context, employeeID string) (model.Empl
 	if err != nil {
 		return employee, fmt.Errorf("can't build query: %s", err.Error())
 	}
-	rows, err := r.db.Query(ctx, query, args...)
+
+	err = r.db.QueryRow(ctx, query, args...).
+		Scan(&employee.ID, &employee.Name, &employee.Surname, &employee.BirthYear)
 	if err != nil {
-		return employee, fmt.Errorf("can't select employees: %s", err.Error())
+		return employee, fmt.Errorf("can't scan Employee: %w", err)
 	}
-	if rows.Next() {
-		err := rows.Scan(&employee.ID, &employee.Name, &employee.Surname, &employee.BirthYear)
-		if err != nil {
-			return employee, fmt.Errorf("can't scan employee: %s", err.Error())
-		}
-	}
-	defer rows.Close()
 	return employee, nil
 }
 
