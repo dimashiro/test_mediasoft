@@ -72,6 +72,7 @@ func (h Handler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unexpected error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(jsonData); err != nil {
 		h.log.Errorw("ERROR", "ERROR", "can't write json data: "+err.Error())
@@ -180,6 +181,7 @@ func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusNoContent)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(`{"success": "ok"}`)
 }
